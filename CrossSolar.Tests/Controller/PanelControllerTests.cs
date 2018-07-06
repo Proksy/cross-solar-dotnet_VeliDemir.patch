@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using CrossSolar.Controllers;
 using CrossSolar.Models;
@@ -24,6 +25,7 @@ namespace CrossSolar.Tests.Controller
         {
             var panel = new PanelModel
             {
+                Id = 1,
                 Brand = "Areva",
                 Latitude = 12.345678,
                 Longitude = 98.7655432,
@@ -41,6 +43,9 @@ namespace CrossSolar.Tests.Controller
             var createdResult = result as CreatedResult;
             Assert.NotNull(createdResult);
             Assert.Equal(201, createdResult.StatusCode);
+
+            // Coverage DataAnnotation
+            Assert.Throws<ValidationException>(() => Validator.ValidateObject(panel, new ValidationContext(panel, null, null), true));
         }
     }
 }

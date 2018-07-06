@@ -32,18 +32,9 @@ namespace CrossSolar.Controllers
 
             if (panel == null) return NotFound();
 
-            var analytics = await _analyticsRepository.Query()
-                .Where(x => x.PanelId.Equals(panelId, StringComparison.CurrentCultureIgnoreCase)).ToListAsync();
+            var analytics = await _analyticsRepository.Query().Where(x => x.PanelId.Equals(panelId, StringComparison.CurrentCultureIgnoreCase)).ToListAsync();
 
-            var result = new OneHourElectricityListModel
-            {
-                OneHourElectricitys = analytics.Select(c => new OneHourElectricityModel
-                {
-                    Id = c.Id,
-                    KiloWatt = c.KiloWatt,
-                    DateTime = c.DateTime
-                })
-            };
+            var result = new OneHourElectricityListModel { OneHourElectricitys = analytics.Select(c => new OneHourElectricityModel { Id = c.Id, KiloWatt = c.KiloWatt, DateTime = c.DateTime }) };
 
             return Ok(result);
         }
@@ -52,7 +43,30 @@ namespace CrossSolar.Controllers
         [HttpGet("{panelId}/[controller]/day")]
         public async Task<IActionResult> DayResults([FromRoute] string panelId)
         {
-            var result = new List<OneDayElectricityModel>();
+            //var result = new List<OneDayElectricityModel>();
+
+            var panel = await _panelRepository.Query()
+                .FirstOrDefaultAsync(x => x.Id.ToString().Equals(panelId, StringComparison.CurrentCultureIgnoreCase));
+
+            if (panel == null) return NotFound();
+
+            //var endOfPreviusDay = DateTime.Now.Date.AddMilliseconds(-1); //the end of previus day
+            //var beginOfThisDay = DateTime.Now.Date; //the begin of this day
+            //var endOfThisDay = DateTime.Now.AddDays(1).Date.AddMilliseconds(-1); //the end of this day
+            //var beginOfNextDay = DateTime.Now.AddDays(1).Date; //the begin of next day
+
+            // Between the end of the previous day and the end of today. Example: Between "5.07.2018 23:59:59" and "6.07.2018 23:59:59" // I can use the begin of next day.
+            var analytics = await _analyticsRepository.Query().Where(x => x.PanelId.Equals(panelId, StringComparison.CurrentCultureIgnoreCase) && x.DateTime > DateTime.Now.Date.AddMilliseconds(-1) && x.DateTime < DateTime.Now.Date.AddDays(1).AddMilliseconds(-1)).ToListAsync();
+
+            var result = new OneDayElectricityModel();
+
+            if (analytics != null && analytics.Count > 0) {
+                result.DateTime = DateTime.Now;
+                result.Minimum = analytics.Min(x => x.KiloWatt);
+                result.Maximum = analytics.Max(x => x.KiloWatt);
+                result.Sum = analytics.Sum(x => x.KiloWatt);
+                result.Average = analytics.Average(x => x.KiloWatt);
+            }
 
             return Ok(result);
         }

@@ -22,7 +22,7 @@ namespace CrossSolar
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<CrossSolarDbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
             services.AddTransient<IPanelRepository, PanelRepository>();
             services.AddTransient<IAnalyticsRepository, AnalyticsRepository>();
             services.AddTransient<IDayAnalyticsRepository, DayAnalyticsRepository>();
